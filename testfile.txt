@@ -1,0 +1,25 @@
+             //dev c
+const int array[2] = {1,2};
+const int A_BLOBAL=1;//dev c
+
+
+
+
+
+
+
+
+
+
+
+
+
+int int_bc=2;
+//end
+int main(){
+    int c;
+    c = getint();//only mod if
+    printf("output is %d",c);
+    a!=b;
+    return c;
+}

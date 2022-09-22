@@ -1,7 +1,7 @@
-import java.util.ArrayList;
+package iced.compiler;
+
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /***
  * 词法分析器
@@ -9,12 +9,9 @@ import java.util.Map;
 public class Morphology {
     private String buff="";
     private int pointer=0;
-//    private List<String> vocabulary;
-    private String devide="\r\t \n";
-    private String characters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private String nonDigit="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
     private String numbers="0123456789";
-    private String symbols="`,./;'[]\\-=~!@#$%^&*()<>?:\"{}|_+";
+//    private String symbols="`,./;'[]\\-=~!@#$%^&*()<>?:\"{}|_+";
     private HashMap<String,String> wordType;
     private HashMap<String,String> wordValue=new HashMap<>();
     private HashMap<String,String> doubleOperator;
@@ -44,7 +41,7 @@ public class Morphology {
     public String nextWord(){
         String token="";
         char c=getChar();
-        while(c!='\0'&&(Character.isWhitespace(c)||isInvisible(c)||devide.contains(c+"")))
+        while(c!='\0'&&Character.isWhitespace(c))
             c=getChar();
         if(nonDigit.contains(c+"")){
             token+=c;
@@ -89,38 +86,10 @@ public class Morphology {
                 unGetChar();
             return token;
         }
-//        else if(symbols.contains(c+"")){
-//            token+=c;
-//            return token;
-//        }
         else if(c=='\0')
             return EOF;
 
         return c+"";
-    }
-
-    public String getDevide() {
-        return devide;
-    }
-
-    public void setDevide(String devide) {
-        this.devide = devide;
-    }
-
-    public String getCharacters() {
-        return characters;
-    }
-
-    public void setCharacters(String characters) {
-        this.characters = characters;
-    }
-
-    public String getNumbers() {
-        return numbers;
-    }
-
-    public void setNumbers(String numbers) {
-        this.numbers = numbers;
     }
 
     public String getTypeName(String str){
@@ -155,8 +124,5 @@ public class Morphology {
     }
     private boolean isInteger(String str){
         return str.matches("[0-9]+");
-    }
-    private boolean isInvisible(char c){
-        return (c-'\0')<32&&c!='\0';
     }
 }

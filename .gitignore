@@ -1,3 +1,6 @@
+#IDEA
+.idea
+
 # Compiled class file
 *.class
 
@@ -6,6 +9,13 @@
 
 # BlueJ files
 *.ctxt
+
+# Temp
+temp
+out
+output.txt
+input.txt
+testfile.txt
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

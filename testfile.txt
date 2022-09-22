@@ -1,25 +1,154 @@
-             //dev c
+           "/*"  //dev c /*
 const int array[2] = {1,2};
 const int A_BLOBAL=1;//dev c
 
 
 
+      "//"    //div sfasd     asdf printf("asdstseratast///*")
 
 
 
 
+      "12"    //div sfasd     asdf printf("asdstseratast///*")
 
 
 
+      "//"    //div sfasd     asdf printf("asdstseratast///*")
 
 
+int int_bc=2;;;;;;
 
-int int_bc=2;
+//你好
+;
+
+;
+res;
 //end
 int main(){
     int c;
     c = getint();//only mod if
     printf("output is %d",c);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     a!=b;
     return c;
 }

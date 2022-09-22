@@ -1,8 +1,10 @@
+import iced.compiler.Morphology;
+import iced.compiler.PreOperate;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.HashMap;
 
 /***
@@ -12,7 +14,7 @@ public class Compiler {
     public static String readAllBytes(FileInputStream fileIn) throws IOException {
         String after="";
         byte b=(byte) fileIn.read();
-        while(b>=0){
+        while(b!=-1){
             after+=(char)b;
             b=(byte) fileIn.read();
         }

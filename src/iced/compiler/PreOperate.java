@@ -1,23 +1,50 @@
+package iced.compiler;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public class PreOperate {
+    private static List<Integer> quotations=new ArrayList<>();
+    private static boolean inQuotations(int a){
+        boolean s=false;
+        for(int i:quotations){
+            if(a>i){
+                s=!s;
+            }else break;
+        }
+        return s;
+    }
     public static String removeComments(String str){
         HashMap<String,String> couple=new HashMap<>();
-//        couple.put("\"", "\"");
-//        couple.put("\'", "\'");
         couple.put("//", "\n");
         couple.put("/*", "*/");
         Set<String> fronts=couple.keySet();
 
         String after="";
+
+
         int temp=0;
+        while(temp<str.length()) {
+            int indx=str.indexOf("\"",temp);
+            if(indx>=0) {
+                quotations.add(indx);
+                temp=indx+1;
+//                System.out.println(indx);
+            }else
+                break;
+        }
+        temp=0;
         while(temp<str.length()) {
             int min=-1;
             String head="";
             for(String front:fronts) {
                 int indx=str.indexOf(front,temp);
-                if(min<0||(indx>=0&&indx<min)) {
+                while(indx>=0&&inQuotations(indx)){
+                    indx=str.indexOf(front,indx+1);
+                }
+                if(min<0||(indx>=0&&indx<min)){
                     min=indx;
                     head=front;
                 }

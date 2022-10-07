@@ -1,4 +1,4 @@
-import iced.compiler.Morphology;
+import iced.compiler.Lexical;
 import iced.compiler.PreOperate;
 
 import java.io.File;
@@ -64,22 +64,22 @@ public class Compiler {
 //            wordSheet.put(words[i].strip(),words[i+1].strip());
             wordSheet.put(stringStrip(words[i]),stringStrip(words[i+1]));
         }
-        Morphology morphology=new Morphology(wordSheet);
+        Lexical lexical =new Lexical(wordSheet);
 
 //        String str=new String(in.readNBytes(Integer.MAX_VALUE));
         String str=readAllBytes(in);
         //将读入的字符串放入词法分析器中
-        morphology.pushString(PreOperate.removeComments(str));
-        String word=morphology.nextWord();
+        lexical.pushString(PreOperate.removeComments(str));
+        String word= lexical.nextWord();
 
-        while(!word.equals(Morphology.EOF)){
+        while(!word.equals(Lexical.EOF)){
 //            System.out.println(String.format("%s:%s",
 //                    morphology.getTypeName(word),
 //                    word
 //                    )
 //            );
-            result+=morphology.getTypeName(word)+" "+word+"\n";
-            word=morphology.nextWord();
+            result+= lexical.getTypeName(word)+" "+word+"\n";
+            word= lexical.nextWord();
         }
 //        out.write(result.strip().getBytes());
         out.write(stringStrip(result).getBytes());

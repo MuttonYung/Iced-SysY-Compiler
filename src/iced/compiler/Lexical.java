@@ -6,7 +6,7 @@ import java.util.List;
 /***
  * 词法分析器
  */
-public class Morphology {
+public class Lexical {
     private String buff="";
     private int pointer=0;
     private String nonDigit="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
@@ -21,15 +21,15 @@ public class Morphology {
     public static final String NAME_OF_STRING="STRCON";
     public static final String EOF="\0";
 
-    public Morphology(){
+    public Lexical(){
         wordType=new HashMap<>();
         loadSymbolTypes();
     }
-    public Morphology(List<String> vocabulary){
+    public Lexical(List<String> vocabulary){
         wordType=new HashMap<>();
         loadSymbolTypes();
     }
-    public Morphology(HashMap<String,String> wordType){
+    public Lexical(HashMap<String,String> wordType){
         this.wordType=wordType;
         loadSymbolTypes();
     }

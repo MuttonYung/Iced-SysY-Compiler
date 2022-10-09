@@ -4,10 +4,7 @@ import iced.compiler.parser.Parser;
 import iced.compiler.lexer.Lexer;
 import iced.compiler.PreOperate;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,6 +12,9 @@ import java.util.List;
  * 词法分析 测试程序
  */
 public class Compiler {
+    //Mission codes.
+    private static final int NUN=0,LEXER=1,PARSER=2,ERROR=3;
+    private static final int mission=LEXER;
     public static String readAllBytes(FileInputStream fileIn) throws IOException {
         String after="";
         byte b=(byte) fileIn.read();
@@ -39,12 +39,13 @@ public class Compiler {
      * @param args
      */
     public static void main(String[] args) throws IOException {
-        File inf =new File("testfile.txt");
+        File testf =new File("testfile.txt");
         File outf =new File("output.txt");
 
-        FileInputStream in=new FileInputStream(inf);
+        FileInputStream testfIn=new FileInputStream(testf);
         FileOutputStream out=new FileOutputStream(outf);
         HashMap<String,String> wordSheet=new HashMap<>();
+        BufferedReader testfReader=new BufferedReader(new FileReader(testf));
         String result="";
         //保留字单词表
         String wordSetTxt="!\tNOT\t*\tMULT\t=\tASSIGN\n" +
@@ -64,18 +65,26 @@ public class Compiler {
             wordSheet.put(word,terminator);
 //            parser.getTerminator().add(terminator);
         }
-        Lexer lexer =new Lexer(wordSheet);
-        String str=readAllBytes(in);
-        System.out.println(str);
+        Lexer lexer =new Lexer(testfReader);
+        lexer.setWordType(wordSheet);
+//        String str=readAllBytes(testfIn);
+//        System.out.println(str);
         //将读入的字符串放入词法分析器中
-        lexer.pushString(PreOperate.removeComments(str));
+//        lexer.pushString(PreOperate.removeComments(str));
         String word= lexer.nextWord();
 
         while(!word.equals(Lexer.EOF)){
 //            result+= lexer.getTypeName(word)+" "+word+"\n";
             word= lexer.nextWord();
         }
-
+        if(mission==LEXER){
+            Symbol symbol;
+            while((symbol=lexer.getSymbolStream().nextSymbol())!=null){
+                result+= symbol.getType()+" "+symbol.getName()
+//                        +" "+symbol.getLine()+":"+symbol.getOffset()
+                        +"\n";
+            }
+        }
 //        Symbol sym;
 //        result+="--DEBUGGING--\n";
 //        while((sym=lexer.getSymbolStream().nextSymbol())!=null){
@@ -87,19 +96,20 @@ public class Compiler {
         Parser parser =new Parser(lexer.getSymbolStream());
         parser.start();
         List<ParseNode> list=parser.getParseTree().traversal();
-        for(ParseNode node:list){
-            String name=node.getSymbol().getName();
-            String type=node.getSymbol().getType();
-            if(type.equals("<BlockItem>")||type.equals("<Decl>")
-                    ||type.equals("<Ident>")||type.equals("<BType>"))
-                continue;
-            if(name=="")
-                result+= type+"\n";
-            else
-                result+= type+" "+name+"\n";
-        }
+        if(mission==PARSER)
+            for(ParseNode node:list){
+                String name=node.getSymbol().getName();
+                String type=node.getSymbol().getType();
+                if(type.equals("<BlockItem>")||type.equals("<Decl>")
+                        ||type.equals("<Ident>")||type.equals("<BType>"))
+                    continue;
+                if(name=="")
+                    result+= type+"\n";
+                else
+                    result+= type+" "+name+"\n";
+            }
         out.write(stringStrip(result).getBytes());
-        in.close();
+        testfReader.close();
         out.close();
     }
 }

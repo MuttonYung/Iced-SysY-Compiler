@@ -1,5 +1,8 @@
 package iced.compiler.lexer;
 
+import javax.imageio.IIOException;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -20,14 +23,17 @@ public class Lexer {
     private int pointer=0;
     private String nonDigit="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
     private String numbers="0123456789";
+    private int line=0,offset=0;
 //    private String symbols="`,./;'[]\\-=~!@#$%^&*()<>?:\"{}|_+";
     private HashMap<String,String> wordType;
     private HashMap<String,String> wordValue=new HashMap<>();
     private HashMap<String,String> doubleOperator;
+    private BufferedReader bufferedReader;
 
     public static final String NAME_OF_INTEGER="INTCON";
     public static final String NAME_OF_IDENTIFIER="IDENFR";
     public static final String NAME_OF_STRING="STRCON";
+    public static final String SAMPLE_OF_COMMENT="//COMMENT";
     public static final String EOF="\0";
 
     public Lexer(){
@@ -46,15 +52,22 @@ public class Lexer {
         symbolStream =new SymbolStream();
     }
 
+    public Lexer(BufferedReader bufferedReader) {
+        this.bufferedReader = bufferedReader;
+        loadSymbolTypes();
+        symbolStream =new SymbolStream();
+    }
+
     /***
      * 获取该词法分析器中的下一个单词
      * @return 下一个单词
      */
-    public String nextWord(){
+    public String nextWord()throws IOException{
         String token="";
         char c=getChar();
         while(c!='\0'&&Character.isWhitespace(c))
             c=getChar();
+        offset=pointer;
         if(nonDigit.contains(c+"")){
             token+=c;
             c=getChar();
@@ -97,12 +110,37 @@ public class Lexer {
             else
                 unGetChar();
 //            return token;
+        }else if(c=='/'){
+            token+=c;
+            c=getChar();
+            if(c=='*') {
+                boolean comment=true;
+                while(comment){
+                    c=getChar();
+                    while(c=='*'){
+                        c=getChar();
+                        if(c=='/')
+                            comment=false;
+                    }
+                }
+                token=SAMPLE_OF_COMMENT;
+            }
+            else if(c=='/'){
+                nextLine();
+                token=SAMPLE_OF_COMMENT;
+            }
+            else
+                unGetChar();
         }
         else if(c=='\0')
             token=EOF;
         else token=c+"";
-        if(!token.equals(EOF))
-            symbolStream.push(new Symbol(token,getTypeName(token)));
+        if(!token.equals(EOF)&&!token.equals(SAMPLE_OF_COMMENT)){
+            Symbol symbol=new Symbol(token,getTypeName(token));
+            symbol.setLine(line);
+            symbol.setOffset(offset);
+            symbolStream.push(symbol);
+        }
         return token;
     }
 
@@ -113,18 +151,28 @@ public class Lexer {
             return NAME_OF_STRING;
         return wordType.get(str);
     }
-    public void pushString(String str){
-        buff+=str;
+//    public void pushString(String str){
+//        buff+=str;
+//    }
+    private void nextLine()throws IOException{
+        buff=bufferedReader.readLine();
+        line++;
+        pointer=0;
     }
-    private char getChar(){
-        if(pointer>=buff.length())
-            return '\0';
+    private char getChar() throws IOException {
+        if(pointer>=buff.length()){
+            nextLine();
+            if(buff==null)
+                return '\0';
+            else
+                return '\n';
+        }
         char c=buff.charAt(pointer);
         pointer++;
         return c;
     }
     private void unGetChar(){
-        pointer--;
+        if(pointer>0)pointer--;
     }
     private void loadSymbolTypes(){
 //        wordType.put(SAMPLE_OF_NUMBER,NAME_OF_INTEGER);
@@ -138,5 +186,13 @@ public class Lexer {
     }
     private boolean isInteger(String str){
         return str.matches("[0-9]+");
+    }
+
+    public HashMap<String, String> getWordType() {
+        return wordType;
+    }
+
+    public void setWordType(HashMap<String, String> wordType) {
+        this.wordType = wordType;
     }
 }

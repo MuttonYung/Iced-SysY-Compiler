@@ -1,154 +1,84 @@
-           "/*"  //dev c /*
-const int array[2] = {1,2};
-const int A_BLOBAL=1;//dev c
-
-
-
-      "//"    //div sfasd     asdf printf("asdstseratast///*")
-
-
-
-
-      "12"    //div sfasd     asdf printf("asdstseratast///*")
-
-
-
-      "//"    //div sfasd     asdf printf("asdstseratast///*")
-
-
-int int_bc=2;;;;;;
-
-//你好
-;
-
-;
-res;
-//end
+const int MAXL=5,LOSS[6]={0,2,1,0,1,0},SEA_LEVEL[6][6]={{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+const int MINL=0,MINH=-100;
+int lake[6]={0,0,0,0,0,0},height[6][6]={{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0},{0,0,0,0,0,0}};
+int executed=0;
+void dig(int a,int b){
+        if(!(0)&&a<=MAXL&&a>=MINL&&b<=MAXL&&b>=MINL){
+		if(height[a][b]>MINH)
+                	height[a][b]=height[a][b]-1;
+                return;
+        }
+}
+void fix(int a,int b){
+        if(a<=MAXL&&a>=MINL&&b<=MAXL&&b>=MINL){
+                height[a][b]=height[a][b]+1;
+                ;
+		{}
+        }
+}
+int deep(int t,int s[]){
+        int i=0,all=0;
+        while(i<=MAXL){
+                if(s[i]<SEA_LEVEL[t][i])
+                        all=all+SEA_LEVEL[t][i]-s[i];
+                i=i+1;
+        }
+        return all;
+}
+int preExecute(){
+        executed=1;
+        return executed;
+}
+int irrigate(int a,int map[][6]){
+        int s=0;
+        lake[a]=0;
+        if(a>MAXL||a<0){
+                ;
+        }else{
+                lake[a]=deep(a,map[a])-LOSS[a];
+                if(lake[a]<0)
+                        lake[a]=0;
+        }
+        s=lake[a]*7;
+        return s;
+}
 int main(){
-    int c;
-    c = getint();//only mod if
-    printf("output is %d",c);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    a!=b;
-    return c;
+        printf("19377326\n");
+        if(2!=2&&preExecute())
+                ;
+        else
+                if(executed==0)
+                        printf("3 x: irrigate, 2 x y: fill, 1 x y: dig, 0: exit.\n");
+        if(2==2||preExecute())
+                if(executed==0)
+                        printf("Pleas input operator...\n");
+        int a,b,c=0;
+        while(+-+1){
+                c=getint();
+                if(c==0){
+                        printf("Bye.\n");
+                        break;
+                }
+                /* else if(c==0)
+                        printf(""); */
+                else if(c==1){
+                        a=getint();
+                        b=getint();
+                        dig(a,b);
+                        printf("Dig a hole at (%d,%d).\n",a,b);
+                }else if(c==2){
+                        a=getint();
+                        b=getint();
+                        fix(a,b);
+                        printf("Put some dirt at (%d,%d).\n",a,b);
+                }else if(c==3){
+                        a=getint();
+                        int d=irrigate(a,height)/2;
+                        printf("Use %dm3 of water to fill row%d.\n",d,a);
+                }else {
+                        printf("Wrong command:%d ,try others.\n",c);
+                        continue;
+                }
+        }
+        return 0;
 }

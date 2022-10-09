@@ -1,4 +1,4 @@
-package iced.compiler;
+package iced.compiler.lexer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,7 +6,16 @@ import java.util.List;
 /***
  * 词法分析器
  */
-public class Lexical {
+public class Lexer {
+    public SymbolStream getSymbolStream() {
+        return symbolStream;
+    }
+
+    public void setSymbolStream(SymbolStream symbolStream) {
+        this.symbolStream = symbolStream;
+    }
+
+    private SymbolStream symbolStream;
     private String buff="";
     private int pointer=0;
     private String nonDigit="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
@@ -21,17 +30,20 @@ public class Lexical {
     public static final String NAME_OF_STRING="STRCON";
     public static final String EOF="\0";
 
-    public Lexical(){
+    public Lexer(){
         wordType=new HashMap<>();
         loadSymbolTypes();
+        symbolStream =new SymbolStream();
     }
-    public Lexical(List<String> vocabulary){
+    public Lexer(List<String> vocabulary){
         wordType=new HashMap<>();
         loadSymbolTypes();
+        symbolStream =new SymbolStream();
     }
-    public Lexical(HashMap<String,String> wordType){
+    public Lexer(HashMap<String,String> wordType){
         this.wordType=wordType;
         loadSymbolTypes();
+        symbolStream =new SymbolStream();
     }
 
     /***
@@ -56,7 +68,7 @@ public class Lexical {
                 wordType.put(token,NAME_OF_IDENTIFIER);
             }
 
-            return token;
+//            return token;
         }else if(numbers.contains(c+"")){
             token+=c;
             c=getChar();
@@ -65,7 +77,7 @@ public class Lexical {
                 c=getChar();
             }
             unGetChar();
-            return token;
+//            return token;
         }else if(c=='"'){
             token+=c;
             c=getChar();
@@ -75,7 +87,7 @@ public class Lexical {
             }
             token+=c;
 
-            return token;
+//            return token;
         }else if(doubleOperator.keySet().contains(c+"")){
             char key0=c;
             token+=c;
@@ -84,12 +96,14 @@ public class Lexical {
                 token+=c;
             else
                 unGetChar();
-            return token;
+//            return token;
         }
         else if(c=='\0')
-            return EOF;
-
-        return c+"";
+            token=EOF;
+        else token=c+"";
+        if(!token.equals(EOF))
+            symbolStream.push(new Symbol(token,getTypeName(token)));
+        return token;
     }
 
     public String getTypeName(String str){

@@ -1,4 +1,7 @@
-import iced.compiler.Lexical;
+import iced.compiler.lexer.Symbol;
+import iced.compiler.parser.ParseNode;
+import iced.compiler.parser.Parser;
+import iced.compiler.lexer.Lexer;
 import iced.compiler.PreOperate;
 
 import java.io.File;
@@ -6,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 /***
  * 词法分析 测试程序
@@ -40,12 +44,9 @@ public class Compiler {
 
         FileInputStream in=new FileInputStream(inf);
         FileOutputStream out=new FileOutputStream(outf);
-//        Scanner stdin=new Scanner(System.in);
         HashMap<String,String> wordSheet=new HashMap<>();
         String result="";
         //保留字单词表
-//        File wordsetf =new File("src/wordset.txt");
-//        FileInputStream wordsetIn=new FileInputStream(wordsetf);
         String wordSetTxt="!\tNOT\t*\tMULT\t=\tASSIGN\n" +
                 "&&\tAND\t/\tDIV\t;\tSEMICN\n" +
                 "||\tOR\t%\tMOD\t,\tCOMMA\n" +
@@ -56,34 +57,48 @@ public class Compiler {
                 "continue\tCONTINUETK\t+\tPLUS\t==\tEQL\t{\tLBRACE\n" +
                 "if\tIFTK\t-\tMINU\t!=\tNEQ\t}\tRBRACE\n" +
                 "else\tELSETK\tvoid\tVOIDTK";
-//        String words[]=new String(wordsetIn.readNBytes(Integer.MAX_VALUE)).split("\t|\n| ");
-//        String words[]=readAllBytes(wordsetIn).split("\t|\n| ");
         String words[]=wordSetTxt.split("\t|\n| ");
         for(int i=0;i+1<words.length;i+=2){
-//            System.out.println(words[i]);
-//            wordSheet.put(words[i].strip(),words[i+1].strip());
-            wordSheet.put(stringStrip(words[i]),stringStrip(words[i+1]));
+            String word=stringStrip(words[i]);
+            String terminator=stringStrip(words[i+1]);
+            wordSheet.put(word,terminator);
+//            parser.getTerminator().add(terminator);
         }
-        Lexical lexical =new Lexical(wordSheet);
-
-//        String str=new String(in.readNBytes(Integer.MAX_VALUE));
+        Lexer lexer =new Lexer(wordSheet);
         String str=readAllBytes(in);
+        System.out.println(str);
         //将读入的字符串放入词法分析器中
-        lexical.pushString(PreOperate.removeComments(str));
-        String word= lexical.nextWord();
+        lexer.pushString(PreOperate.removeComments(str));
+        String word= lexer.nextWord();
 
-        while(!word.equals(Lexical.EOF)){
-//            System.out.println(String.format("%s:%s",
-//                    morphology.getTypeName(word),
-//                    word
-//                    )
-//            );
-            result+= lexical.getTypeName(word)+" "+word+"\n";
-            word= lexical.nextWord();
+        while(!word.equals(Lexer.EOF)){
+//            result+= lexer.getTypeName(word)+" "+word+"\n";
+            word= lexer.nextWord();
         }
-//        out.write(result.strip().getBytes());
-        out.write(stringStrip(result).getBytes());
+
+//        Symbol sym;
+//        result+="--DEBUGGING--\n";
+//        while((sym=lexer.getSymbolStream().nextSymbol())!=null){
+//            result+= sym.getType()+" "+sym.getName()+"\n";
 //        }
+//        result+="--FINISH--\n";
+//        lexer.getSymbolStream().reset();
+
+        Parser parser =new Parser(lexer.getSymbolStream());
+        parser.start();
+        List<ParseNode> list=parser.getParseTree().traversal();
+        for(ParseNode node:list){
+            String name=node.getSymbol().getName();
+            String type=node.getSymbol().getType();
+            if(type.equals("<BlockItem>")||type.equals("<Decl>")
+                    ||type.equals("<Ident>")||type.equals("<BType>"))
+                continue;
+            if(name=="")
+                result+= type+"\n";
+            else
+                result+= type+" "+name+"\n";
+        }
+        out.write(stringStrip(result).getBytes());
         in.close();
         out.close();
     }

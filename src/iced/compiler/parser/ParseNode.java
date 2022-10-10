@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParseNode {
-    private Symbol symbol;
+    private final Symbol symbol;
     private ParseNode father;
-    private List<ParseNode> children=new ArrayList<>();
+    private final List<ParseNode> children=new ArrayList<>();
 
     public ParseNode(Symbol symbol){
         this.symbol=symbol;
@@ -22,10 +22,6 @@ public class ParseNode {
         return symbol;
     }
 
-    public void setSymbol(Symbol symbol) {
-        this.symbol = symbol;
-    }
-
     public ParseNode getFather() {
         return father;
     }
@@ -33,6 +29,7 @@ public class ParseNode {
     public void setFather(ParseNode father) {
         this.father = father;
     }
+
     public List<ParseNode> getChildren() {
         return children;
     }
@@ -41,10 +38,11 @@ public class ParseNode {
         node.setFather(this);
         children.add(node);
     }
+
     public void father(ParseNode node){
-        setFather(node);
-        node.getChildren().add(this);
+        node.child(this);
     }
+
     public boolean isLeaf(){
         return getChildren().size()==0;
     }

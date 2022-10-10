@@ -6,7 +6,6 @@ public class Symbol {
     private int code;
     private String value;
     private String name;
-//    private String type;
 
     public Symbol(String name,int code) {
         this.code = code;

@@ -1,6 +1,4 @@
 package iced.compiler;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SysY {
@@ -19,10 +17,10 @@ public class SysY {
             AddExp=STRCON+26,RelExp=STRCON+27,EqExp=STRCON+28,LAndExp=STRCON+29,LOrExp=STRCON+30
             ,ConstExp=STRCON+31,CompUnit=STRCON+32;
     private static HashMap<Integer,String> codeType;
-    public static final boolean isTerminator(int a){
+    public static boolean isTerminator(int a){
         return a>=NOT&&a<=STRCON;
     }
-    public static final String getType(int a){
+    public static String getType(int a){
         if(isTerminator(a))
             return codeType.get(a);
         else

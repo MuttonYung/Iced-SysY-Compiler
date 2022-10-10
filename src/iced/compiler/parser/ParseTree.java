@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParseTree {
-    private ParseNode root;
+    private final ParseNode root;
     private List<ParseNode> list;
     public ParseTree(ParseNode root) {
         this.root = root;
@@ -22,10 +22,6 @@ public class ParseTree {
     }
     private void traverse(ParseNode node){
         if(!node.isLeaf()){
-//            for(ParseNode child:node.getChildren()){
-//                System.out.print(child.getSymbol().getType()+" ");
-//            }
-//            System.out.println();
             for(ParseNode child:node.getChildren())
                 traverse(child);
         }

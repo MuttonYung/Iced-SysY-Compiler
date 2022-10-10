@@ -1,5 +1,7 @@
 package iced.compiler.lexer;
 
+import iced.compiler.SysY;
+
 import javax.imageio.IIOException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,7 +11,7 @@ import java.util.List;
 /***
  * 词法分析器
  */
-public class Lexer {
+public class Lexer extends SysY {
     public SymbolStream getSymbolStream() {
         return symbolStream;
     }
@@ -25,7 +27,8 @@ public class Lexer {
     private String numbers="0123456789";
     private int line=0,offset=0;
 //    private String symbols="`,./;'[]\\-=~!@#$%^&*()<>?:\"{}|_+";
-    private HashMap<String,String> wordType;
+//    private HashMap<String,String> wordType;
+    private HashMap<String,Integer> symbolCode;
     private HashMap<String,String> wordValue=new HashMap<>();
     private HashMap<String,String> doubleOperator;
     private BufferedReader bufferedReader;
@@ -36,26 +39,62 @@ public class Lexer {
     public static final String SAMPLE_OF_COMMENT="//COMMENT";
     public static final String EOF="\0";
 
-    public Lexer(){
-        wordType=new HashMap<>();
-        loadSymbolTypes();
-        symbolStream =new SymbolStream();
-    }
-    public Lexer(List<String> vocabulary){
-        wordType=new HashMap<>();
-        loadSymbolTypes();
-        symbolStream =new SymbolStream();
-    }
-    public Lexer(HashMap<String,String> wordType){
-        this.wordType=wordType;
-        loadSymbolTypes();
-        symbolStream =new SymbolStream();
-    }
+//    public Lexer(){
+//        wordType=new HashMap<>();
+//        loadSymbolTypes();
+//        symbolStream =new SymbolStream();
+//    }
+//    public Lexer(List<String> vocabulary){
+//        wordType=new HashMap<>();
+//        loadSymbolTypes();
+//        symbolStream =new SymbolStream();
+//    }
+//    public Lexer(HashMap<String,String> wordType){
+//        this.wordType=wordType;
+//        loadSymbolTypes();
+//        symbolStream =new SymbolStream();
+//    }
 
     public Lexer(BufferedReader bufferedReader) {
         this.bufferedReader = bufferedReader;
         loadSymbolTypes();
         symbolStream =new SymbolStream();
+        symbolCode=new HashMap<>();
+        symbolCode.put("!",NOT);
+        symbolCode.put("*",MULT);
+        symbolCode.put("=",ASSIGN);
+        symbolCode.put("&&",AND);
+        symbolCode.put("/",DIV);
+        symbolCode.put(";",SEMICN);
+        symbolCode.put("||",OR);
+        symbolCode.put("%",MOD);
+        symbolCode.put(",",COMMA);
+        symbolCode.put("main",MAINTK);
+        symbolCode.put("while",WHILETK);
+        symbolCode.put("<",LSS);
+        symbolCode.put("(",LPARENT);
+        symbolCode.put("const",CONSTTK);
+        symbolCode.put("getint",GETINTTK);
+        symbolCode.put("<=",LEQ);
+        symbolCode.put(")",RPARENT);
+        symbolCode.put("int",INTTK);
+        symbolCode.put("printf",PRINTFTK);
+        symbolCode.put(">",GRE);
+        symbolCode.put("[",LBRACK);
+        symbolCode.put("break",BREAKTK);
+        symbolCode.put("return",RETURNTK);
+        symbolCode.put(">=",GEQ);
+        symbolCode.put("]",RBRACK);
+        symbolCode.put("continue",CONTINUETK);
+        symbolCode.put("+",PLUS);
+        symbolCode.put("==",EQL);
+        symbolCode.put("{",LBRACE);
+        symbolCode.put("if",IFTK);
+        symbolCode.put("-",MINU);
+        symbolCode.put("!=",NEQ);
+        symbolCode.put("}",RBRACE);
+        symbolCode.put("else",ELSETK);
+        symbolCode.put("void",VOIDTK);
     }
 
     /***
@@ -77,8 +116,8 @@ public class Lexer {
             }
             unGetChar();
 
-            if(!wordType.keySet().contains(token)){
-                wordType.put(token,NAME_OF_IDENTIFIER);
+            if(!symbolCode.keySet().contains(token)){
+                symbolCode.put(token,IDENFR);
             }
 
 //            return token;
@@ -136,7 +175,7 @@ public class Lexer {
             token=EOF;
         else token=c+"";
         if(!token.equals(EOF)&&!token.equals(SAMPLE_OF_COMMENT)){
-            Symbol symbol=new Symbol(token,getTypeName(token));
+            Symbol symbol=new Symbol(token,getCode(token));
             symbol.setLine(line);
             symbol.setOffset(offset);
             symbolStream.push(symbol);
@@ -144,12 +183,19 @@ public class Lexer {
         return token;
     }
 
-    public String getTypeName(String str){
+//    public String getTypeName(String str){
+//        if(isInteger(str))
+//            return NAME_OF_INTEGER;
+//        else if(str.charAt(0)=='"')
+//            return NAME_OF_STRING;
+//        return wordType.get(str);
+//    }
+    public int getCode(String str){
         if(isInteger(str))
-            return NAME_OF_INTEGER;
+            return INTCON;
         else if(str.charAt(0)=='"')
-            return NAME_OF_STRING;
-        return wordType.get(str);
+            return STRCON;
+        return symbolCode.get(str);
     }
 //    public void pushString(String str){
 //        buff+=str;
@@ -188,11 +234,11 @@ public class Lexer {
         return str.matches("[0-9]+");
     }
 
-    public HashMap<String, String> getWordType() {
-        return wordType;
-    }
-
-    public void setWordType(HashMap<String, String> wordType) {
-        this.wordType = wordType;
-    }
+//    public HashMap<String, String> getWordType() {
+//        return wordType;
+//    }
+//
+//    public void setWordType(HashMap<String, String> wordType) {
+//        this.wordType = wordType;
+//    }
 }

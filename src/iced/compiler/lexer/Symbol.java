@@ -3,9 +3,23 @@ package iced.compiler.lexer;
 public class Symbol {
     private int line;
     private int offset;
+    private int code;
     private String value;
     private String name;
-    private String type;
+//    private String type;
+
+    public Symbol(String name,int code) {
+        this.code = code;
+        this.name = name;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
 
     public int getLine() {
         return line;
@@ -39,17 +53,4 @@ public class Symbol {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-
-    public Symbol(String name, String type) {
-        this.name = name;
-        this.type = type;
-    }
 }

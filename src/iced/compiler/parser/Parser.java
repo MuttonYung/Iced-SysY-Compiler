@@ -1,5 +1,6 @@
 package iced.compiler.parser;
 
+import iced.compiler.SysY;
 import iced.compiler.lexer.Symbol;
 import iced.compiler.lexer.SymbolStream;
 
@@ -7,9 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Parser {
+public class Parser extends SysY {
 
-    private String sym="";
+//    private String sym="";
     private Symbol symbol;
     private String startSymbol="";
     private HashMap<String,String> rules=new HashMap<>();
@@ -71,25 +72,25 @@ public class Parser {
     private boolean logMark=true;
     private String log="";
 
-    public String getSym() {
-        return sym;
-    }
-
-    public String getWord() {
-        return word;
-    }
-
-    String word="";
+//    public String getSym() {
+//        return sym;
+//    }
+//
+//    public String getWord() {
+//        return word;
+//    }
+//
+//    String word="";
 
     private void nextSym(){
         symbol=symbolStream.nextSymbol();
-        if(symbol==null){
-            word="";
-            sym="";
-            return;
-        }
-        word= symbol.getName();
-        sym= symbol.getType();
+//        if(symbol==null){
+//            word="";
+//            sym="";
+//            return;
+//        }
+//        word= symbol.getName();
+//        sym= symbol.getType();
 //        System.out.println("symbol: "+sym+" "+word);
     }
     public void start(){
@@ -110,47 +111,47 @@ public class Parser {
 //            }
 //        }else{
 //            ParseNode syntax;
-//            if(symbol.equals("<CompUnit>")){
-//                syntax=analyze("<Decl>");
+//            if(symbol.equals(CompUnit)){
+//                syntax=analyze(Decl);
 //                while(syntax!=null){
 //                    node.child(syntax);
-//                    syntax=analyze("<Decl>");
+//                    syntax=analyze(Decl);
 //                }
-//                syntax=analyze("<ConstDecl>");
+//                syntax=analyze(ConstDecl);
 //                while(syntax!=null){
 //                    node.child(syntax);
-//                    syntax=analyze("<ConstDecl>");
+//                    syntax=analyze(ConstDecl);
 //                }
-//                syntax=analyze("<MainFuncDef>");
+//                syntax=analyze(MainFuncDef);
 //                if(syntax==null){
 //                    error();
 //                    return null;
 //                }
-//            }else if(symbol.equals("<Decl>")){
-//                syntax=analyze("<MainFuncDef>");
-//            }else if(symbol.equals("<ConstDecl>")){
+//            }else if(symbol.equals(Decl)){
+//                syntax=analyze(MainFuncDef);
+//            }else if(symbol.equals(ConstDecl)){
 //                ConstDecl();
-//            }else if(symbol.equals("<BType>")){
+//            }else if(symbol.equals(BType)){
 //                BType();
-//            }else if(symbol.equals("<ConstDef>")){
+//            }else if(symbol.equals(ConstDef)){
 //                ConstDef();
-//            }else if(symbol.equals("<ConstInitVal>")){
+//            }else if(symbol.equals(ConstInitVal)){
 //                ConstInitVal();
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
-//            }else if(symbol.equals("<>")){
+//            }else if(symbol.equals()){
 //
 //            }else{
 //            String rule=rules.get(symbol);
@@ -180,31 +181,31 @@ public class Parser {
     public void error(){
 //        System.out.println("sym="+sym);
 //        System.out.println("word="+word);
-        throw new RuntimeException("sym="+sym);
+        throw new RuntimeException("symbol = "+symbol.getName());
     }
     public ParseNode CompUnit(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<CompUnit>");
+        ParseNode node=new ParseNode(CompUnit);
         ParseNode syntax;
         while((syntax=Decl())!=null)
             node.child(syntax);
         while((syntax=FuncDef())!=null)
             node.child(syntax);
-        if((syntax=MainFuncDef())!=null)
-            node.child(syntax);
-        else{
-//            error();
+        
+        if((syntax=MainFuncDef())==null){
+            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode Decl(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<Decl>");
+        ParseNode node=new ParseNode(Decl);
         ParseNode syntax;
         if((syntax=ConstDecl())==null)
             if((syntax=VarDecl())==null){
@@ -226,15 +227,14 @@ public class Parser {
     public ParseNode ConstDecl(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<ConstDecl>");
+        ParseNode node=new ParseNode(ConstDecl);
         ParseNode syntax;
 
-        if(!sym.equals("CONSTTK")){
+        if((syntax=terminator(CONSTTK))==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        node.child(new ParseNode(symbol));
-        nextSym();
+        node.child(syntax);
         if((syntax=BType())==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
@@ -247,30 +247,27 @@ public class Parser {
             return null;
         }
         node.child(syntax);
-        while(sym.equals("COMMA")){
-            node.child(new ParseNode(symbol));
-            nextSym();
+        while((syntax=terminator(COMMA))!=null){
+            node.child(syntax);
             if((syntax=ConstDef())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
             node.child(syntax);
         }
-        if(sym.equals("SEMICN")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else {
+        if((syntax=terminator(SEMICN))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode VarDecl(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<VarDecl>");
+        ParseNode node=new ParseNode(VarDecl);
         ParseNode syntax;
 
         if((syntax=BType())==null){
@@ -279,31 +276,26 @@ public class Parser {
             return null;
         }
         node.child(syntax);
-        if((syntax=VarDef())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=VarDef())==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("COMMA")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=VarDef())!=null)
-                node.child(syntax);
-            else {
+        node.child(syntax);
+        while((syntax=terminator(COMMA))!=null){
+            node.child(syntax);
+            if((syntax=VarDef())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }
-        if(sym.equals("SEMICN")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else {
+        if((syntax=terminator(SEMICN))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
@@ -311,14 +303,13 @@ public class Parser {
     public ParseNode BType(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<BType>");
+        ParseNode node=new ParseNode(BType);
         ParseNode syntax;
-        if(!sym.equals("INTTK")){
+        if((syntax=terminator(INTTK))==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        node.child(new ParseNode(symbol));
-        nextSym();
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
@@ -326,45 +317,37 @@ public class Parser {
     public ParseNode ConstDef(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<ConstDef>");
+        ParseNode node=new ParseNode(ConstDef);
         ParseNode syntax;
-        if((syntax=Ident())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=terminator(IDENFR))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("LBRACK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=ConstExp())!=null)
-                node.child(syntax);
-            else {
-                symbolStream.setPointer(head);nextSym();
-                return null;
-            }
-            if(sym.equals("RBRACK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
-                symbolStream.setPointer(head);nextSym();
-                return null;
-            }
-        }
-        if(sym.equals("ASSIGN")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else {
-            symbolStream.setPointer(head);nextSym();
-            return null;
-        }
-        if((syntax=ConstInitVal())!=null)
+        node.child(syntax);
+        while((syntax=terminator(LBRACK))!=null){
             node.child(syntax);
-        else {
+            if((syntax=ConstExp())==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
+            if((syntax=terminator(RBRACK))==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
+        }
+        if((syntax=terminator(ASSIGN))==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
+        if((syntax=ConstInitVal())==null){
+            symbolStream.setPointer(head);nextSym();
+            return null;
+        }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
@@ -372,33 +355,29 @@ public class Parser {
     public ParseNode ConstInitVal(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<ConstInitVal>");
+        ParseNode node=new ParseNode(ConstInitVal);
         ParseNode syntax;
         if((syntax=ConstExp())!=null)
             node.child(syntax);
-        else if(sym.equals("LBRACE")){
-            node.child(new ParseNode(symbol));
-            nextSym();
+        else if((syntax=terminator(LBRACE))!=null){
+            node.child(syntax);
             if((syntax=ConstInitVal())!=null){
                 node.child(syntax);
-                while(sym.equals("COMMA")){
-                    node.child(new ParseNode(symbol));
-                    nextSym();
-                    if((syntax=ConstInitVal())!=null)
-                        node.child(syntax);
-                    else {
+                while((syntax=terminator(COMMA))!=null){
+                    node.child(syntax);
+                    if((syntax=ConstInitVal())==null){
                         symbolStream.setPointer(head);nextSym();
                         return null;
                     }
+                    node.child(syntax);
                 }
             }
-            if(sym.equals("RBRACE")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            
+            if((syntax=terminator(RBRACE))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }else{
             symbolStream.setPointer(head);nextSym();
             return null;
@@ -410,41 +389,35 @@ public class Parser {
     public ParseNode VarDef(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<VarDef>");
+        ParseNode node=new ParseNode(VarDef);
         ParseNode syntax;
-        if((syntax=Ident())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=terminator(IDENFR))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("LBRACK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=ConstExp())!=null)
-                node.child(syntax);
-            else {
+        node.child(syntax);
+        
+        while((syntax=terminator(LBRACK))!=null){
+            node.child(syntax);
+            if((syntax=ConstExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("RBRACK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+            if((syntax=terminator(RBRACK))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }
-        if(sym.equals("ASSIGN")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=InitVal())!=null)
-                node.child(syntax);
-            else {
+        if((syntax=terminator(ASSIGN))!=null){
+            node.child(syntax);
+            if((syntax=InitVal())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }
         //symbolStream.forward();
         return node;
@@ -453,34 +426,29 @@ public class Parser {
     public ParseNode InitVal(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<InitVal>");
+        ParseNode node=new ParseNode(InitVal);
         ParseNode syntax;
         if((syntax=Exp())!=null)
             node.child(syntax);
-        else if(sym.equals("LBRACE")){
-            node.child(new ParseNode(symbol));
-            nextSym();
+        else if((syntax=terminator(LBRACE))!=null){
+            node.child(syntax);
             if((syntax=InitVal())!=null){
                 node.child(syntax);
-                while(sym.equals("COMMA")){
-                    node.child(new ParseNode(symbol));
-                    nextSym();
-                    if((syntax=InitVal())!=null)
-                        node.child(syntax);
-                    else {
+                while((syntax=terminator(COMMA))!=null){
+                    node.child(syntax);
+                    if((syntax=InitVal())==null){
                         symbolStream.setPointer(head);nextSym();
                         return null;
                     }
+                    node.child(syntax);
                 }
             }
-            if(sym.equals("RBRACE")) {
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else{
+            if((syntax=terminator(RBRACE))==null){
 //            error();
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }else{
 //            error();
             symbolStream.setPointer(head);nextSym();
@@ -492,119 +460,111 @@ public class Parser {
     public ParseNode FuncDef(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<FuncDef>");
+        ParseNode node=new ParseNode(FuncDef);
         ParseNode syntax;
 
-        if((syntax=FuncType())!=null)
+        if((syntax=FuncType())==null){
+//            error();
+            symbolStream.setPointer(head);nextSym();
+            return null;
+        }
+        node.child(syntax);
+        if((syntax=terminator(IDENFR))!=null)
             node.child(syntax);
         else {
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if((syntax=Ident())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=terminator(LPARENT))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if(sym.equals("LPARENT")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
-//            error();
-            symbolStream.setPointer(head);nextSym();
-            return null;
-        }
+        node.child(syntax);
+        
         if((syntax=FuncFParams())!=null)
             node.child(syntax);
-        if(sym.equals("RPARENT")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
+        
+        if((syntax=terminator(RPARENT))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if((syntax=Block())!=null)
-            node.child(syntax);
-        else {
+        node.child(syntax);
+        
+        if((syntax=Block())==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode MainFuncDef(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<MainFuncDef>");
+        ParseNode node=new ParseNode(MainFuncDef);
         ParseNode syntax;
 
-        if(sym.equals("INTTK")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
+        if((syntax=terminator(INTTK))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if(sym.equals("MAINTK")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
+        node.child(syntax);
+
+        if((syntax=terminator(MAINTK))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if(sym.equals("LPARENT")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
+        node.child(syntax);
+
+        if((syntax=terminator(LPARENT))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if(sym.equals("RPARENT")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
+        node.child(syntax);
+
+        if((syntax=terminator(RPARENT))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if((syntax=Block())!=null)
-            node.child(syntax);
-        else {
+        node.child(syntax);
+
+        if((syntax=Block())==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode FuncType(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<FuncType>");
+        ParseNode node=new ParseNode(FuncType);
         ParseNode syntax;
 
-        if(!sym.equals("VOIDTK")&&!sym.equals("INTTK")){
+        if((syntax=terminator(VOIDTK))==null
+                &&(syntax=terminator(INTTK))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        node.child(new ParseNode(symbol));
-        nextSym();
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode FuncFParams(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<FuncFParams>");
+        ParseNode node=new ParseNode(FuncFParams);
         ParseNode syntax;
 
         if((syntax=FuncFParam())==null){
@@ -612,9 +572,9 @@ public class Parser {
             return null;
         }
         node.child(syntax);
-        while(sym.equals("COMMA")){
-            node.child(new ParseNode(symbol));
-            nextSym();
+
+        while((syntax=terminator(COMMA))!=null){
+            node.child(syntax);
             if((syntax=FuncFParam())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
@@ -627,48 +587,44 @@ public class Parser {
     public ParseNode FuncFParam(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<FuncFParam>");
+        ParseNode node=new ParseNode(FuncFParam);
         ParseNode syntax;
-        if((syntax=BType())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=BType())==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if((syntax=Ident())!=null)
-            node.child(syntax);
-        else {
+        node.child(syntax);
+
+        if((syntax=terminator(IDENFR))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        if(sym.equals("LBRACK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if(sym.equals("RBRACK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+        node.child(syntax);
+
+        if((syntax=terminator(LBRACK))!=null){
+            node.child(syntax);
+            if((syntax=terminator(RBRACK))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            while(sym.equals("LBRACK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-                if((syntax=ConstExp())!=null)
-                    node.child(syntax);
-                else {
+            node.child(syntax);
+
+            while((syntax=terminator(LBRACK))!=null){
+                node.child(syntax);
+
+                if((syntax=ConstExp())==null){
                     symbolStream.setPointer(head);nextSym();
                     return null;
                 }
-                if(sym.equals("RBRACK")){
-                    node.child(new ParseNode(symbol));
-                    nextSym();
-                }else {
+                node.child(syntax);
+
+                if((syntax=terminator(RBRACK))==null){
                     symbolStream.setPointer(head);nextSym();
                     return null;
                 }
+                node.child(syntax);
             }
         }
         //symbolStream.forward();
@@ -677,86 +633,76 @@ public class Parser {
     public ParseNode Block(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<Block>");
+        ParseNode node=new ParseNode(Block);
         ParseNode syntax;
 
-        if(sym.equals("LBRACE")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }
-        else {
+        if((syntax=terminator(LBRACE))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
+
         while((syntax=BlockItem())!=null)
             node.child(syntax);
-        if(sym.equals("RBRACE")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }
-        else {
+
+        if((syntax=terminator(RBRACE))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode BlockItem(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<BlockItem>");
+        ParseNode node=new ParseNode(BlockItem);
         ParseNode syntax;
-        if((syntax=Stmt())!=null)
-            node.child(syntax);
-        else if((syntax=Decl())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=Stmt())==null
+            &&(syntax=Decl())==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
-    public ParseNode Ident(){
-        ////symbolStream.back();nextSym();
-        int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<Ident>");
-        ParseNode syntax;
-        if(sym.equals("IDENFR")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else {
-            symbolStream.setPointer(head);nextSym();
-            return null;
-        }
-        //symbolStream.forward();
-        return node;
-    }
+//    public ParseNode terminator(IDENFR){
+//        ////symbolStream.back();nextSym();
+//        int head= symbolStream.getPointer()-1;
+//        ParseNode node=new ParseNode(Ident);
+//        ParseNode syntax;
+//        if(sym.equals("IDENFR")) {
+//            node.child(syntax);
+//        }else {
+//            symbolStream.setPointer(head);nextSym();
+//            return null;
+//        }
+//        //symbolStream.forward();
+//        return node;
+//    }
     public ParseNode Stmt(){
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<Stmt>");
+        ParseNode node=new ParseNode(Stmt);
         ParseNode syntax;
         if((syntax=LVal())!=null){
             node.child(syntax);
-            if(sym.equals("ASSIGN")){
-                node.child(new ParseNode(symbol));
-                nextSym();
+            if((syntax=terminator(ASSIGN))!=null){
+                node.child(syntax);
             }else {
                 symbolStream.setPointer(head);nextSym();
-                node=new ParseNode("<Stmt>");
+                node=new ParseNode(Stmt);
                 if((syntax=Exp())!=null){
                     node.child(syntax);
-                    if(sym.equals("SEMICN")){
-                        node.child(new ParseNode(symbol));
-                        nextSym();
-                        return node;
-                    }else {
+                    if((syntax=terminator(SEMICN))==null){
                         symbolStream.setPointer(head);nextSym();
                         return null;
                     }
+                    node.child(syntax);
+                    return node;
                 }else{
                     symbolStream.setPointer(head);nextSym();
                     return null;
@@ -764,180 +710,153 @@ public class Parser {
             }
             if((syntax=Exp())!=null)
                 node.child(syntax);
-            else if(sym.equals("GETINTTK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-                if(sym.equals("LPARENT")){
-                    node.child(new ParseNode(symbol));
-                    nextSym();
-                }else {
+            else if((syntax=terminator(GETINTTK))!=null){
+                node.child(syntax);
+                if((syntax=terminator(LPARENT))==null){
                     symbolStream.setPointer(head);nextSym();
                     return null;
                 }
-                if(sym.equals("RPARENT")){
-                    node.child(new ParseNode(symbol));
-                    nextSym();
-                }else {
+                node.child(syntax);
+
+                if((syntax=terminator(RPARENT))==null){
                     symbolStream.setPointer(head);nextSym();
                     return null;
                 }
+                node.child(syntax);
             }else{
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("SEMICN")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            if((syntax=terminator(SEMICN))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }
-        else if(sym.equals("SEMICN")){
-            node.child(new ParseNode(symbol));
-            nextSym();
+        else if((syntax=terminator(SEMICN))!=null){
+            node.child(syntax);
         }else if((syntax=Exp())!=null){
             node.child(syntax);
-            if(sym.equals("SEMICN")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            if((syntax=terminator(SEMICN))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }else if((syntax=Block())!=null)
             node.child(syntax);
-        else if(sym.equals("IFTK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if(sym.equals("LPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+        else if((syntax=terminator(IFTK))!=null){
+            node.child(syntax);
+            if((syntax=terminator(LPARENT))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if((syntax=Cond())!=null)
+            node.child(syntax);
+
+            if((syntax=Cond())==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
+
+            if((syntax=terminator(RPARENT))==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
+
+            if((syntax=Stmt())==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
+
+            if((syntax=terminator(ELSETK))!=null){
                 node.child(syntax);
-            else {
-                symbolStream.setPointer(head);nextSym();
-                return null;
-            }
-            if(sym.equals("RPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
-                symbolStream.setPointer(head);nextSym();
-                return null;
-            }
-            if((syntax=Stmt())!=null)
-                node.child(syntax);
-            else {
-                symbolStream.setPointer(head);nextSym();
-                return null;
-            }
-            if(sym.equals("ELSETK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-                if((syntax=Stmt())!=null)
-                    node.child(syntax);
-                else {
+                if((syntax=Stmt())==null){
                     symbolStream.setPointer(head);nextSym();
                     return null;
                 }
-            }
-        }else if(sym.equals("WHILETK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if(sym.equals("LPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
-                symbolStream.setPointer(head);nextSym();
-                return null;
-            }
-            if((syntax=Cond())!=null)
                 node.child(syntax);
-            else {
+            }
+        }else if((syntax=terminator(WHILETK))!=null){
+            node.child(syntax);
+            if((syntax=terminator(LPARENT))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("RPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+
+            if((syntax=Cond())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if((syntax=Stmt())!=null)
-                node.child(syntax);
-            else {
+            node.child(syntax);
+
+            if((syntax=terminator(RPARENT))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-        }else if(sym.equals("BREAKTK")||sym.equals("CONTINUETK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if(sym.equals("SEMICN")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+
+            if((syntax=Stmt())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-        }else if(sym.equals("RETURNTK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
+            node.child(syntax);
+        }else if((syntax=terminator(BREAKTK))!=null
+                ||(syntax=terminator(CONTINUETK))!=null){
+            node.child(syntax);
+
+            if((syntax=terminator(SEMICN))==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
+        }else if((syntax=terminator(RETURNTK))!=null){
+            node.child(syntax);
             if((syntax=Exp())!=null)
                 node.child(syntax);
-            if(sym.equals("SEMICN")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+
+            if((syntax=terminator(SEMICN))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-        }else if(sym.equals("PRINTFTK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if(sym.equals("LPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+        }else if((syntax=terminator(PRINTFTK))!=null){
+            node.child(syntax);
+
+            if((syntax=terminator(LPARENT))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("STRCON")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+
+            if((syntax=terminator(STRCON))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            while(sym.equals("COMMA")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-                if((syntax=Exp())!=null)
-                    node.child(syntax);
-                else {
+            node.child(syntax);
+
+            while((syntax=terminator(COMMA))!=null){
+                node.child(syntax);
+                if((syntax=Exp())==null){
                     symbolStream.setPointer(head);nextSym();
                     return null;
                 }
+                node.child(syntax);
             }
-            if(sym.equals("RPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+
+            if((syntax=terminator(RPARENT))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("SEMICN")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+
+            if((syntax=terminator(SEMICN))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }else{
             symbolStream.setPointer(head);nextSym();
             return null;
@@ -947,59 +866,54 @@ public class Parser {
     public ParseNode Exp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<Exp>");
+        ParseNode node=new ParseNode(Exp);
         ParseNode syntax;
-        if((syntax=AddExp())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=AddExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode Cond(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<Cond>");
+        ParseNode node=new ParseNode(Cond);
         ParseNode syntax;
-        if((syntax=LOrExp())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=LOrExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode LVal(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<LVal>");
+        ParseNode node=new ParseNode(LVal);
         ParseNode syntax;
-        if((syntax=Ident())!=null)
-            node.child(syntax);
-        else {
+        if((syntax=terminator(IDENFR))==null){
 //            error();
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("LBRACK")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=Exp())!=null)
-                node.child(syntax);
-            else {
+        node.child(syntax);
+
+        while((syntax=terminator(LBRACK))!=null){
+            node.child(syntax);
+            if((syntax=Exp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("RBRACK")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+
+            if((syntax=terminator(RBRACK))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }
         //symbolStream.forward();
         return node;
@@ -1007,25 +921,22 @@ public class Parser {
     public ParseNode PrimaryExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<PrimaryExp>");
+        ParseNode node=new ParseNode(PrimaryExp);
         ParseNode syntax;
-        if(sym.equals("LPARENT")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=Exp())!=null)
-                node.child(syntax);
-            else{
+        if((syntax=terminator(LPARENT))!=null){
+            node.child(syntax);
+            if((syntax=Exp())==null){
 //            error();
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
-            if(sym.equals("RPARENT")){
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else {
+            node.child(syntax);
+
+            if((syntax=terminator(RPARENT))==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }
         else if((syntax=LVal())!=null)
             node.child(syntax);
@@ -1036,7 +947,7 @@ public class Parser {
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-//        while(sym.equals("LBRACK")){
+//        while((syntax=terminator(LBRACK))!=null){
 //            node.child(new ParseNode(symbol));
 //            nextSym();
 //            if((syntax=Exp())!=null)
@@ -1045,7 +956,7 @@ public class Parser {
 //                symbolStream.setPointer(head);nextSym();
 //                return null;
 //            }
-//            if(sym.equals("RBRACK")){
+//            if((syntax=terminator(RBRACK))!=null){
 //                node.child(new ParseNode(symbol));
 //                nextSym();
 //            }else {
@@ -1057,35 +968,30 @@ public class Parser {
         return node;
     }
     public ParseNode Number() {
-        //symbolStream.back();
-//        nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node = new ParseNode("<Number>");
+        ParseNode node = new ParseNode(Number);
         ParseNode syntax;
-        if(sym.equals("INTCON")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else {
+        if((syntax=terminator(INTCON))==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode UnaryExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<UnaryExp>");
+        ParseNode node=new ParseNode(UnaryExp);
         ParseNode syntax;
 
-        if((syntax=Ident())!=null){
+        if((syntax=terminator(IDENFR))!=null){
             node.child(syntax);
-            if(sym.equals("LPARENT")) {
-                node.child(new ParseNode(symbol));
-                nextSym();
+            if((syntax=terminator(LPARENT))!=null) {
+                node.child(syntax);
             }else{
 //            error();
-                node=new ParseNode("<UnaryExp>");
+                node=new ParseNode(UnaryExp);
                 symbolStream.setPointer(head);nextSym();
                 if((syntax=PrimaryExp())!=null) {
                     node.child(syntax);
@@ -1097,24 +1003,22 @@ public class Parser {
             }
             if((syntax=FuncRParams())!=null)
                 node.child(syntax);
-            if(sym.equals("RPARENT")) {
-                node.child(new ParseNode(symbol));
-                nextSym();
-            }else{
+            if((syntax=terminator(RPARENT))==null) {
 //            error();
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }else if((syntax=PrimaryExp())!=null)
             node.child(syntax);
         else if((syntax=UnaryOp())!=null){
             node.child(syntax);
-            if((syntax=UnaryExp())!=null)
-                node.child(syntax);
-            else {
+
+            if((syntax=UnaryExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
         }else {
             symbolStream.setPointer(head);nextSym();
             return null;
@@ -1125,39 +1029,36 @@ public class Parser {
     public ParseNode UnaryOp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<UnaryOp>");
+        ParseNode node=new ParseNode(UnaryOp);
         ParseNode syntax;
-        if(sym.equals("PLUS")||sym.equals("MINU")||sym.equals("NOT")) {
-            node.child(new ParseNode(symbol));
-            nextSym();
-        }else{
+        if((syntax=terminator(PLUS))==null
+                &&(syntax=terminator(MINU))==null
+                &&(syntax=terminator(NOT))==null) {
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
     }
     public ParseNode FuncRParams(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<FuncRParams>");
+        ParseNode node=new ParseNode(FuncRParams);
         ParseNode syntax;
 
-        if((syntax=Exp())!=null){
-            node.child(syntax);
-        }else {
-            symbolStream.setPointer(head);nextSym();
-            return null;
-        }
-        while(sym.equals("COMMA")){
-            node.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=Exp())!=null)
-                node.child(syntax);
-            else {
+        if((syntax=Exp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
+        while((syntax=terminator(COMMA))!=null){
+            node.child(syntax);
+            if((syntax=Exp())==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node.child(syntax);
         }
         //symbolStream.forward();
         return node;
@@ -1165,26 +1066,25 @@ public class Parser {
     public ParseNode MulExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<MulExp>");
+        ParseNode node=new ParseNode(MulExp);
         ParseNode syntax;
 
-        if((syntax=UnaryExp())!=null){
-            node.child(syntax);
-        }else {
-            symbolStream.setPointer(head);nextSym();
-            return null;
-        }
-        while(sym.equals("MULT")||sym.equals("DIV")||sym.equals("MOD")){
-            ParseNode node1=new ParseNode("<MulExp>");
-            node1.child(node);
-            node1.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=UnaryExp())!=null)
-                node1.child(syntax);
-            else {
+        if((syntax=UnaryExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
+        while((syntax=terminator(MULT))!=null
+                ||(syntax=terminator(DIV))!=null
+                ||(syntax=terminator(MOD))!=null){
+            ParseNode node1=new ParseNode(MulExp);
+            node1.child(node);
+            node1.child(syntax);
+            if((syntax=UnaryExp())==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node1.child(syntax);
             node=node1;
         }
         //symbolStream.forward();
@@ -1193,26 +1093,25 @@ public class Parser {
     public ParseNode AddExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<AddExp>");
+        ParseNode node=new ParseNode(AddExp);
         ParseNode syntax;
 
-        if((syntax=MulExp())!=null){
-            node.child(syntax);
-        }else {
+        if((syntax=MulExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("PLUS")||sym.equals("MINU")){
-            ParseNode node1=new ParseNode("<AddExp>");
+        node.child(syntax);
+
+        while((syntax=terminator(PLUS))!=null
+                ||(syntax=terminator(MINU))!=null){
+            ParseNode node1=new ParseNode(AddExp);
             node1.child(node);
-            node1.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=MulExp())!=null)
-                node1.child(syntax);
-            else {
+            node1.child(syntax);
+            if((syntax=MulExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node1.child(syntax);
             node=node1;
         }
         //symbolStream.forward();
@@ -1221,26 +1120,27 @@ public class Parser {
     public ParseNode RelExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<RelExp>");
+        ParseNode node=new ParseNode(RelExp);
         ParseNode syntax;
 
-        if((syntax=AddExp())!=null){
-            node.child(syntax);
-        }else {
+        if((syntax=AddExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("LSS")||sym.equals("LEQ")||sym.equals("GRE")||sym.equals("GEQ")){
-            ParseNode node1=new ParseNode("<RelExp>");
+        node.child(syntax);
+
+        while((syntax=terminator(LSS))!=null
+                ||(syntax=terminator(LEQ))!=null
+                ||(syntax=terminator(GRE))!=null
+                ||(syntax=terminator(GEQ))!=null){
+            ParseNode node1=new ParseNode(RelExp);
             node1.child(node);
-            node1.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=AddExp())!=null)
-                node1.child(syntax);
-            else {
+            node1.child(syntax);
+            if((syntax=AddExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node1.child(syntax);
             node=node1;
         }
         //symbolStream.forward();
@@ -1249,26 +1149,23 @@ public class Parser {
     public ParseNode EqExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<EqExp>");
+        ParseNode node=new ParseNode(EqExp);
         ParseNode syntax;
 
-        if((syntax=RelExp())!=null){
-            node.child(syntax);
-        }else {
+        if((syntax=RelExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("EQL")||sym.equals("NEQ")){
-            ParseNode node1=new ParseNode("<EqExp>");
+        node.child(syntax);
+        while((syntax=terminator(EQL))!=null||(syntax=terminator(NEQ))!=null){
+            ParseNode node1=new ParseNode(EqExp);
             node1.child(node);
-            node1.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=RelExp())!=null)
-                node1.child(syntax);
-            else {
+            node1.child(syntax);
+            if((syntax=RelExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node1.child(syntax);
             node=node1;
         }
         //symbolStream.forward();
@@ -1277,26 +1174,24 @@ public class Parser {
     public ParseNode LAndExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<LAndExp>");
+        ParseNode node=new ParseNode(LAndExp);
         ParseNode syntax;
 
-        if((syntax=EqExp())!=null){
-            node.child(syntax);
-        }else {
+        if((syntax=EqExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
-        while(sym.equals("AND")){
-            ParseNode node1=new ParseNode("<LAndExp>");
+        node.child(syntax);
+        while((syntax=terminator(AND))!=null){
+            ParseNode node1=new ParseNode(LAndExp);
             node1.child(node);
-            node1.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=EqExp())!=null)
-                node1.child(syntax);
-            else {
+            node1.child(syntax);
+
+            if((syntax=EqExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node1.child(syntax);
             node=node1;
         }
         //symbolStream.forward();
@@ -1305,26 +1200,23 @@ public class Parser {
     public ParseNode LOrExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<LOrExp>");
+        ParseNode node=new ParseNode(LOrExp);
         ParseNode syntax;
 
-        if((syntax=LAndExp())!=null){
-            node.child(syntax);
-        }else {
-            symbolStream.setPointer(head);nextSym();
-            return null;
-        }
-        while(sym.equals("OR")){
-            ParseNode node1=new ParseNode("<LOrExp>");
-            node1.child(node);
-            node1.child(new ParseNode(symbol));
-            nextSym();
-            if((syntax=LAndExp())!=null)
-                node1.child(syntax);
-            else {
+        if((syntax=LAndExp())==null){
                 symbolStream.setPointer(head);nextSym();
                 return null;
             }
+            node.child(syntax);
+        while((syntax=terminator(OR))!=null){
+            ParseNode node1=new ParseNode(LOrExp);
+            node1.child(node);
+            node1.child(syntax);
+            if((syntax=LAndExp())==null){
+                symbolStream.setPointer(head);nextSym();
+                return null;
+            }
+            node1.child(syntax);
             node=node1;
         }
         //symbolStream.forward();
@@ -1333,16 +1225,25 @@ public class Parser {
     public ParseNode ConstExp(){
         ////symbolStream.back();nextSym();
         int head= symbolStream.getPointer()-1;
-        ParseNode node=new ParseNode("<ConstExp>");
+        ParseNode node=new ParseNode(ConstExp);
         ParseNode syntax;
 
-        if((syntax=AddExp())!=null){
-            node.child(syntax);
-        }else {
+        if((syntax=AddExp())==null){
             symbolStream.setPointer(head);nextSym();
             return null;
         }
+        node.child(syntax);
         //symbolStream.forward();
         return node;
+    }
+    public ParseNode terminator(int a){
+        if(symbol==null||!isTerminator(a))
+            return null;
+        if(symbol.getCode()==a){
+            ParseNode node=new ParseNode(symbol);
+            nextSym();
+            return node;
+        }
+        return null;
     }
 }

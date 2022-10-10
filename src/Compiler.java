@@ -1,3 +1,4 @@
+import iced.compiler.SysY;
 import iced.compiler.lexer.Symbol;
 import iced.compiler.parser.ParseNode;
 import iced.compiler.parser.Parser;
@@ -14,7 +15,7 @@ import java.util.List;
 public class Compiler {
     //Mission codes.
     private static final int NUN=0,LEXER=1,PARSER=2,ERROR=3;
-    private static final int mission=LEXER;
+    private static final int mission=PARSER;
     public static String readAllBytes(FileInputStream fileIn) throws IOException {
         String after="";
         byte b=(byte) fileIn.read();
@@ -63,10 +64,13 @@ public class Compiler {
             String word=stringStrip(words[i]);
             String terminator=stringStrip(words[i+1]);
             wordSheet.put(word,terminator);
+
+//            System.out.println("symbolCode.put(\""+word+"\","+terminator+");");
+//            System.out.println("codeName.put("+terminator+",\""+terminator+"\");");
 //            parser.getTerminator().add(terminator);
         }
         Lexer lexer =new Lexer(testfReader);
-        lexer.setWordType(wordSheet);
+//        lexer.setWordType(wordSheet);
 //        String str=readAllBytes(testfIn);
 //        System.out.println(str);
         //将读入的字符串放入词法分析器中
@@ -80,7 +84,7 @@ public class Compiler {
         if(mission==LEXER){
             Symbol symbol;
             while((symbol=lexer.getSymbolStream().nextSymbol())!=null){
-                result+= symbol.getType()+" "+symbol.getName()
+                result+= SysY.getType(symbol.getCode()) +" "+symbol.getName()
 //                        +" "+symbol.getLine()+":"+symbol.getOffset()
                         +"\n";
             }
@@ -99,14 +103,21 @@ public class Compiler {
         if(mission==PARSER)
             for(ParseNode node:list){
                 String name=node.getSymbol().getName();
-                String type=node.getSymbol().getType();
-                if(type.equals("<BlockItem>")||type.equals("<Decl>")
-                        ||type.equals("<Ident>")||type.equals("<BType>"))
+                int code=node.getSymbol().getCode();
+                if(code==SysY.BlockItem||code==SysY.Decl||code==SysY.BType)
                     continue;
-                if(name=="")
-                    result+= type+"\n";
+                if(SysY.isTerminator(code))
+                    result+= SysY.getType(code)+" "+name+"\n";
                 else
-                    result+= type+" "+name+"\n";
+                    result+= SysY.getType(code)+"\n";
+
+//                if(type.equals("<BlockItem>")||type.equals("<Decl>")
+//                        ||type.equals("<Ident>")||type.equals("<BType>"))
+//                    continue;
+//                if(name=="")
+//                    result+= type+"\n";
+//                else
+//                    result+= type+" "+name+"\n";
             }
         out.write(stringStrip(result).getBytes());
         testfReader.close();

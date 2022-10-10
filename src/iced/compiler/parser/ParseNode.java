@@ -13,8 +13,8 @@ public class ParseNode {
     public ParseNode(Symbol symbol){
         this.symbol=symbol;
     }
-    public ParseNode(String type){
-        this.symbol=new Symbol("",type);
+    public ParseNode(int code){
+        this.symbol=new Symbol("",code);
     }
 
 

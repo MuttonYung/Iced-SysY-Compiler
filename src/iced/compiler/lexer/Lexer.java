@@ -1,13 +1,14 @@
 package iced.compiler.lexer;
 
 import iced.compiler.SysY;
+import iced.compiler.error.Error;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 
 public class Lexer extends SysY {
-    private final SymbolStream symbolStream;
+    private final TokenStream tokenStream;
     private String buff="";
     private int pointer=0;
     private int line=0;
@@ -29,7 +30,7 @@ public class Lexer extends SysY {
         doubleOperator.put("&","&");
         doubleOperator.put("|","|");
 
-        symbolStream =new SymbolStream();
+        tokenStream =new TokenStream();
         symbolCode=new HashMap<>();
         symbolCode.put("!",NOT);
         symbolCode.put("*",MULT);
@@ -77,7 +78,7 @@ public class Lexer extends SysY {
         char c=getChar();
         while(c!='\0'&&Character.isWhitespace(c))
             c=getChar();
-        int offset = pointer;
+        int offset = pointer,iline=line;
         String nonDigit = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
         String numbers = "0123456789";
         if(nonDigit.contains(c+"")){
@@ -143,10 +144,10 @@ public class Lexer extends SysY {
             token = new StringBuilder(EOF);
         else token = new StringBuilder(c + "");
         if(!token.toString().equals(EOF)&&!token.toString().equals(SAMPLE_OF_COMMENT)){
-            Symbol symbol=new Symbol(token.toString(),getCode(token.toString()));
-            symbol.setLine(line);
+            Token symbol=new Token(token.toString(),getCode(token.toString()));
+            symbol.setLine(iline);
             symbol.setOffset(offset);
-            symbolStream.push(symbol);
+            tokenStream.push(symbol);
         }
         return token.toString();
     }
@@ -166,6 +167,8 @@ public class Lexer extends SysY {
     }
 
     private char getChar() throws IOException {
+        if(buff==null)
+            return '\0';
         if(pointer>=buff.length()){
             nextLine();
             if(buff==null)
@@ -186,8 +189,8 @@ public class Lexer extends SysY {
         return str.matches("[0-9]+");
     }
 
-    public SymbolStream getSymbolStream() {
-        return symbolStream;
+    public TokenStream getSymbolStream() {
+        return tokenStream;
     }
 
 }

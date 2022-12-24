@@ -1,7 +1,11 @@
 package iced.compiler;
+import java.util.ArrayList;
+import iced.compiler.error.Error;
 import java.util.HashMap;
+import java.util.List;
 
 public class SysY {
+    private static final List<Error> errorList=new ArrayList<>();
     public static final int NOT=10,MULT=11,ASSIGN=12,AND=13,DIV=14,SEMICN=15,
             OR=16,MOD=17,COMMA=18,MAINTK=19,WHILETK=20,LSS=21,LPARENT=22,
             CONSTTK=23,GETINTTK=24,LEQ=25,RPARENT=26,INTTK=27,PRINTFTK=28,
@@ -98,5 +102,9 @@ public class SysY {
         codeType.put(IDENFR,"IDENFR");
         codeType.put(INTCON,"INTCON");
         codeType.put(STRCON,"STRCON");
+    }
+
+    public static List<Error> getErrorList() {
+        return errorList;
     }
 }

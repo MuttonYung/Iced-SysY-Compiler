@@ -1,26 +1,49 @@
 package iced.compiler.parser;
 
-import iced.compiler.lexer.Symbol;
+import iced.compiler.lexer.Token;
+import iced.compiler.sematics.Block;
+import iced.compiler.sematics.Operator;
+import iced.compiler.sematics.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ParseNode {
-    private final Symbol symbol;
+    private final Token token;
     private ParseNode father;
     private final List<ParseNode> children=new ArrayList<>();
+    private final List<Operator> expressions=new ArrayList<>();
+    private Block block;
+    private Symbol symbol;
+    private Operator operator;
 
-    public ParseNode(Symbol symbol){
-        this.symbol=symbol;
+    public void addOperator(Operator op) {
+        expressions.add(op);
+    }
+
+    public List<Operator> getExpressions() {
+        return expressions;
+    }
+
+    public ParseNode(Token token){
+        this.token = token;
     }
     public ParseNode(int code){
-        this.symbol=new Symbol("",code);
+        this.token =new Token("",code);
     }
 
-
-    public Symbol getSymbol() {
-        return symbol;
+    public Token getToken() {
+        return token;
     }
+
+    public Block getBlock() {
+        return block;
+    }
+
+    public void setBlock(Block block) {
+        this.block = block;
+    }
+
 
     public ParseNode getFather() {
         return father;
@@ -45,5 +68,21 @@ public class ParseNode {
 
     public boolean isLeaf(){
         return getChildren().size()==0;
+    }
+
+    public Symbol getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(Symbol symbol) {
+        this.symbol = symbol;
+    }
+
+    public Operator getOperator() {
+        return operator;
+    }
+
+    public void setOperator(Operator operator) {
+        this.operator = operator;
     }
 }

@@ -1,10 +1,14 @@
 import iced.compiler.SysY;
-import iced.compiler.lexer.Symbol;
+import iced.compiler.error.Error;
+import iced.compiler.lexer.Token;
 import iced.compiler.parser.ParseNode;
 import iced.compiler.parser.Parser;
 import iced.compiler.lexer.Lexer;
+import iced.compiler.sematics.CodeGenerate;
+import iced.compiler.sematics.SemanticsAnalyser;
 
 import java.io.*;
+import java.util.Comparator;
 import java.util.List;
 
 /***
@@ -12,8 +16,8 @@ import java.util.List;
  */
 public class Compiler {
     //Mission codes.
-    private static final int NUN=0,LEXER=1,PARSER=2,ERROR=3;
-    private static final int mission=PARSER;
+    private static final int NUN=0,LEXER=1,PARSER=2,ERROR=3,SEMANTIC=4;
+    private static final int mission=ERROR;
     //String.strip() is not available in JDK1.8
     public static String stringStrip(String str){
         String after="";
@@ -25,13 +29,24 @@ public class Compiler {
         after+=str.substring(begin,end+1);
         return after;
     }
+    static class ErrorSort implements Comparator<Error> {
+        // override the compare() method
+        public int compare(Error e1, Error e2)
+        {
+            if (e1.getLine() == e2.getLine()&&e1.getCode() == e2.getCode())
+                return 0;
+            else if (e1.getLine() > e2.getLine()||
+                    (e1.getLine() == e2.getLine()&&e1.getCode() > e2.getCode()))
+                return 1;
+            else
+                return -1;
+        }
+    }
     /***
      * Compile testfile.txt
      */
     public static void main(String[] args) throws IOException {
         File testf =new File("testfile.txt");
-        File outf =new File("output.txt");
-        FileOutputStream out=new FileOutputStream(outf);
         BufferedReader testfReader=new BufferedReader(new FileReader(testf));
         StringBuilder result= new StringBuilder();
 
@@ -43,14 +58,16 @@ public class Compiler {
 
         //Lexer test output
         if(mission==LEXER){
-            Symbol symbol;
-            while((symbol=lexer.getSymbolStream().nextSymbol())!=null){
+            Token symbol;
+            while((symbol=lexer.getSymbolStream().nextToken())!=null){
                 result.append(SysY.getType(symbol.getCode())).append(" ").append(symbol.getName()).append("\n");
             }
 
-            out.write(stringStrip(result.toString()).getBytes());
+            File outf =new File("output.txt");
+            FileOutputStream outfOut=new FileOutputStream(outf);
+            outfOut.write(stringStrip(result.toString()).getBytes());
             testfReader.close();
-            out.close();
+            outfOut.close();
             return;
         }
 
@@ -62,8 +79,8 @@ public class Compiler {
         if(mission==PARSER){
             List<ParseNode> list=parser.getParseTree().traversal();
             for(ParseNode node:list){
-                String name=node.getSymbol().getName();
-                int code=node.getSymbol().getCode();
+                String name=node.getToken().getName();
+                int code=node.getToken().getCode();
                 if(code==SysY.BlockItem||code==SysY.Decl||code==SysY.BType)
                     continue;
                 if(SysY.isTerminator(code))
@@ -72,14 +89,45 @@ public class Compiler {
                     result.append(SysY.getType(code)).append("\n");
             }
 
-            out.write(stringStrip(result.toString()).getBytes());
+            File outf =new File("output.txt");
+            FileOutputStream outfOut=new FileOutputStream(outf);
+            outfOut.write(stringStrip(result.toString()).getBytes());
             testfReader.close();
-            out.close();
+            outfOut.close();
             return;
         }
 
-        out.write(stringStrip(result.toString()).getBytes());
-        testfReader.close();
-        out.close();
+
+        SemanticsAnalyser semanticsAnalyser=new SemanticsAnalyser(parser.getParseTree());
+        semanticsAnalyser.build();
+        CodeGenerate codeGenerate=new CodeGenerate(semanticsAnalyser.getOperatorList());
+        codeGenerate.build();
+        //Semantics test output
+        if(mission==SEMANTIC){
+            for(String cmd:codeGenerate.getCodeList())
+                result.append(cmd+'\n');
+            File outf =new File("mips.txt");
+            FileOutputStream outfOut=new FileOutputStream(outf);
+            outfOut.write(stringStrip(result.toString()).getBytes());
+            testfReader.close();
+            outfOut.close();
+            return;
+        }
+
+
+        //Error test output
+        if(mission==ERROR){
+            List<Error> errorList=SysY.getErrorList();
+            errorList.sort(new ErrorSort());
+            for(Error error:SysY.getErrorList())
+                result.append(error.getLine()+" "+error.getCode()+"\n");
+            File errorf =new File("error.txt");
+            FileOutputStream errorfOut=new FileOutputStream(errorf);
+
+            errorfOut.write(stringStrip(result.toString()).getBytes());
+            testfReader.close();
+            errorfOut.close();
+            return;
+        }
     }
 }

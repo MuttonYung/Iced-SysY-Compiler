@@ -1,13 +1,13 @@
 package iced.compiler.lexer;
 
-public class Symbol {
+public class Token {
     private int line;
     private int offset;
     private int code;
     private String value;
     private String name;
 
-    public Symbol(String name,int code) {
+    public Token(String name, int code) {
         this.code = code;
         this.name = name;
     }
